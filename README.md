@@ -4,8 +4,8 @@ This code branch provides an example of using DefGrid for learnable feature pool
 on Cityscapes semantic segmentation benchmark. For technical details, please refer to:  
 ----------------------- ------------------------------------
 **Beyond Fixed Grid: Learning Geometric Image Representation with a Deformable Grid**  
-[Jun Gao](http://www.cs.toronto.edu/~jungao/) <sup>1,2,3</sup>, [Zian Wang](http://www.cs.toronto.edu/~zianwang/)<sup>1,2</sup>, [Jinchen Xuan]()<sup>4</sup>, [Sanja Fidler](http://www.cs.toronto.edu/~fidler/)<sup>1,2,3</sup>   
-<sup>1</sup> University of Toronto  <sup>2</sup> Vector Institute <sup>3</sup> NVIDIA  <sup>4</sup> Peking University
+[Jun Gao](http://www.cs.toronto.edu/~jungao/) <sup>1</sup>, [Zian Wang](http://www.cs.toronto.edu/~zianwang/)<sup>1</sup>, [Jinchen Xuan]()<sup>2</sup>, [Sanja Fidler](http://www.cs.toronto.edu/~fidler/)<sup>1</sup>   
+<sup>1</sup> University of Toronto   <sup>2</sup> Peking University
 **[[Paper](https://arxiv.org/abs/2008.09269)] [[Video](https://www.youtube.com/watch?v=_DVxqK3_zlM)] [[Supplementary](http://www.cs.toronto.edu/~jungao/def-grid/files/suppl.pdf)] [[Project](http://www.cs.toronto.edu/~jungao/def-grid/)]**
 
 **ECCV 2020**
