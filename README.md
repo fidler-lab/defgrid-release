@@ -78,3 +78,12 @@ We provide the code in this [branch](https://github.com/fidler-lab/deformable-gr
 
 # License
 This work is licensed under a *CC BY-NC-SA 4.0* License.
+
+If you use this code, please cite:
+
+    @inproceedings{deformablegrid,
+    title={Beyond Fixed Grid: Learning Geometric Image Representation with a Deformable Grid},
+    author={Jun Gao and Zian Wang and Jinchen Xuan and Sanja Fidler},
+    booktitle={ECCV},
+    year={2020}
+    }
