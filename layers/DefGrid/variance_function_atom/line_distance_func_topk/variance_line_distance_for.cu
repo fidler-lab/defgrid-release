@@ -13,7 +13,7 @@
 //extern THCState * state;
 
 template<typename scalar_t>
-__host__ __device__ scalar_t line_variance_topk_cuda_abs(scalar_t a){
+__host__ __device__ scalar_t dr_cuda_abs(scalar_t a){
 	if (a > 0.0){
 		return a;
 	}
@@ -23,12 +23,12 @@ __host__ __device__ scalar_t line_variance_topk_cuda_abs(scalar_t a){
 }
 
 template<typename scalar_t>
-__host__ __device__ scalar_t line_variance_topk_cuda_square(scalar_t a){
+__host__ __device__ scalar_t dr_cuda_square(scalar_t a){
 	return a * a;
 }
 
 template<typename scalar_t>
-__host__ __device__ scalar_t line_variance_topk_cuda_divide_non_zero(scalar_t a){
+__host__ __device__ scalar_t dr_cuda_divide_non_zero(scalar_t a){
 	if (a == 0){
 		return eps;
 	}
@@ -42,7 +42,7 @@ __host__ __device__ scalar_t line_variance_topk_cuda_divide_non_zero(scalar_t a)
 }
 
 template<typename scalar_t>
-__host__ __device__ scalar_t line_variance_topk_cuda_min_dis(scalar_t a, scalar_t b, scalar_t c){
+__host__ __device__ scalar_t dr_cuda_min_dis(scalar_t a, scalar_t b, scalar_t c){
 	scalar_t min_d = a;
 	if (b < min_d){
 		min_d = b;
@@ -54,7 +54,7 @@ __host__ __device__ scalar_t line_variance_topk_cuda_min_dis(scalar_t a, scalar_
 }
 
 template<typename scalar_t>
-__host__ __device__ scalar_t line_variance_topk_cuda_min_dis_idx(scalar_t a, scalar_t b, scalar_t c){
+__host__ __device__ scalar_t dr_cuda_min_dis_idx(scalar_t a, scalar_t b, scalar_t c){
 	scalar_t min_d = a;
 	int min_idx = 0;
 	if (b < min_d){
@@ -79,16 +79,16 @@ __host__ __device__ scalar_t distance_line(scalar_t x1, scalar_t y1, scalar_t x2
 	scalar_t c1 = - x * x1 + x * x2 + x1 * x1 - x1 * x2 - y * y1 + y * y2 + y1 * y1 - y1 * y2;
 	scalar_t c2 = x1 * x1 - 2 * x1 * x2 + x2 * x2 + y1 * y1  - 2 * y1 * y2 + y2 * y2;
 	
-	scalar_t d1 = -dx1x + dx1x2 * c1 / line_variance_topk_cuda_divide_non_zero(c2);
-	scalar_t d2 = -dy1y + dy1y2 * c1 / line_variance_topk_cuda_divide_non_zero(c2);
+	scalar_t d1 = -dx1x + dx1x2 * c1 / dr_cuda_divide_non_zero(c2);
+	scalar_t d2 = -dy1y + dy1y2 * c1 / dr_cuda_divide_non_zero(c2);
 	
-	scalar_t dis = 	line_variance_topk_cuda_abs(d1)	+ line_variance_topk_cuda_abs(d2);
+	scalar_t dis = 	dr_cuda_abs(d1)	+ dr_cuda_abs(d2);	
 
 	return dis;
 }
 template <typename scalar_t>
 __host__ __device__ scalar_t distance_point(scalar_t x1, scalar_t y1, scalar_t x, scalar_t y){
-	return line_variance_topk_cuda_abs(x - x1) + line_variance_topk_cuda_abs(y - y1);
+	return dr_cuda_abs(x - x1) + dr_cuda_abs(y - y1);
 }
 
 template <typename scalar_t>
@@ -123,8 +123,8 @@ __host__ __device__ void distance(scalar_t* ret, scalar_t x1, scalar_t y1, scala
 		return;
 	}
 
-	//scalar_t l1 = k1 / line_variance_topk_cuda_divide_non_zero(k3);
-	//scalar_t l2 = k2 / line_variance_topk_cuda_divide_non_zero(k3);
+	//scalar_t l1 = k1 / dr_cuda_divide_non_zero(k3);
+	//scalar_t l2 = k2 / dr_cuda_divide_non_zero(k3);
 	scalar_t l1 = k1 / k3;
 	scalar_t l2 = k2 / k3;
 	scalar_t l3 = 1 - l1 - l2;
@@ -134,8 +134,8 @@ __host__ __device__ void distance(scalar_t* ret, scalar_t x1, scalar_t y1, scala
 	scalar_t dis13 = distance_line(x1, y1, x3, y3, x, y);
 	
 	if (l1 >= 0 && l2 >= 0 && l3 >= 0){ // lie inside or on the boundary
-		scalar_t min_dis_line = line_variance_topk_cuda_min_dis(dis12, dis23, dis13);
-		scalar_t min_dis_line_idx = line_variance_topk_cuda_min_dis_idx(dis12, dis23, dis13);
+		scalar_t min_dis_line = dr_cuda_min_dis(dis12, dis23, dis13);
+		scalar_t min_dis_line_idx = dr_cuda_min_dis_idx(dis12, dis23, dis13);			
 		ret[0] = 0;
 		ret[1] = min_dis_line;
 		ret[2] = min_dis_line_idx;
@@ -151,15 +151,15 @@ __host__ __device__ void distance(scalar_t* ret, scalar_t x1, scalar_t y1, scala
 	dis23 = within23 ? dis23 : MAX_DIS;
 	dis13 = within13 ? dis13 : MAX_DIS;
 
-	scalar_t min_dis_line = line_variance_topk_cuda_min_dis(dis12, dis23, dis13);
-	scalar_t min_dis_line_idx = line_variance_topk_cuda_min_dis_idx(dis12, dis23, dis13);
+	scalar_t min_dis_line = dr_cuda_min_dis(dis12, dis23, dis13);
+	scalar_t min_dis_line_idx = dr_cuda_min_dis_idx(dis12, dis23, dis13);	
 	
 	scalar_t d1 = distance_point(x1, y1, x, y);
 	scalar_t d2 = distance_point(x2, y2, x, y);  
 	scalar_t d3 = distance_point(x3, y3, x, y);
 	
-	scalar_t min_dis_point = line_variance_topk_cuda_min_dis(d1, d2, d3);
-	scalar_t min_dis_point_idx = line_variance_topk_cuda_min_dis_idx(d1, d2, d3);
+	scalar_t min_dis_point = dr_cuda_min_dis(d1, d2, d3);
+	scalar_t min_dis_point_idx = dr_cuda_min_dis_idx(d1, d2, d3);
 
 	if (min_dis_line < min_dis_point){
 		ret[0] = 1;
@@ -175,7 +175,7 @@ __host__ __device__ void distance(scalar_t* ret, scalar_t x1, scalar_t y1, scala
 }
 
 template <typename scalar_t> 
-__global__ void line_variance_topk_cuda_forward_kernel_batch(
+__global__ void dr_cuda_forward_kernel_batch(
         const torch::PackedTensorAccessor<scalar_t, 3, torch::RestrictPtrTraits, size_t> img_fea_bxnxd,
         const torch::PackedTensorAccessor<scalar_t, 3, torch::RestrictPtrTraits, size_t> grid_fea_bxkxd,
 		const torch::PackedTensorAccessor<scalar_t, 4, torch::RestrictPtrTraits, size_t> grid_bxkx3x2,
@@ -267,7 +267,7 @@ __global__ void line_variance_topk_cuda_forward_kernel_batch(
 			grid_f = grid_fea_bxkxd[bidx][grididx][d];
 			pixel_f = img_fea_bxnxd[bidx][pixel_idx][d];
 			reconstruct_bxnxd[bidx][pixel_idx][d] += w * grid_f;
-			diff = line_variance_topk_cuda_square(grid_f - pixel_f);
+			diff = dr_cuda_square(grid_f - pixel_f);
 			difference = difference + diff;
 		}
 		variance = variance + w * difference;
@@ -281,7 +281,7 @@ __global__ void line_variance_topk_cuda_forward_kernel_batch(
 	variance_bxn[bidx][pixel_idx] = variance;
 }
 
-void line_variance_topk_cuda_forward_batch(at::Tensor img_fea_bxnxd, at::Tensor grid_fea_bxkxd, at::Tensor grid_bxkx3x2, at::Tensor img_pos_bxnx2,
+void dr_cuda_forward_batch(at::Tensor img_fea_bxnxd, at::Tensor grid_fea_bxkxd, at::Tensor grid_bxkx3x2, at::Tensor img_pos_bxnx2,
                         at::Tensor variance_bxn, float sigma, at::Tensor reconstruct_bxnxd, at::Tensor topk_grid_bxnxk, at::Tensor buffer_bxnxk){
 
 	int bnum = grid_bxkx3x2.size(0);
@@ -298,8 +298,8 @@ void line_variance_topk_cuda_forward_batch(at::Tensor img_fea_bxnxd, at::Tensor 
 	const dim3 blocks(blocknum, 1, 1);
 
 
-	AT_DISPATCH_FLOATING_TYPES(grid_bxkx3x2.type(), "line_variance_topk_cuda_forward_batch", ([&] {
-		line_variance_topk_cuda_forward_kernel_batch<scalar_t><<<blocks, threads>>>(
+	AT_DISPATCH_FLOATING_TYPES(grid_bxkx3x2.type(), "dr_cuda_forward_batch", ([&] {
+		dr_cuda_forward_kernel_batch<scalar_t><<<blocks, threads>>>(
 		        img_fea_bxnxd.packed_accessor<scalar_t, 3, torch::RestrictPtrTraits, size_t>(),
 		        grid_fea_bxkxd.packed_accessor<scalar_t, 3, torch::RestrictPtrTraits, size_t>(),
 				grid_bxkx3x2.packed_accessor<scalar_t, 4, torch::RestrictPtrTraits, size_t>(),

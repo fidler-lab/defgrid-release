@@ -5,6 +5,9 @@ from Models.GNN.GCN_res_layer import GraphResConvolution
 import torch.nn.functional as F
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+
+
+
 class GCN(nn.Module):
     def __init__(self,
                  state_dim=256,

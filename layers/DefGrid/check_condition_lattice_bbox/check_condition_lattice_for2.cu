@@ -1,15 +1,18 @@
 #include <ATen/ATen.h>
+
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <assert.h>
 #include <THC/THC.h>
 #include <vector>
+
 #define eps 1e-10
 #define SCALE 1.0
 
+//extern THCState * state;
 
 template<typename scalar_t>
-__host__ __device__ scalar_t check_condition_cuda_abs(scalar_t a){
+__host__ __device__ scalar_t dr_cuda_abs(scalar_t a){
 	if (a > 0.0){
 		return a;
 	}
@@ -19,13 +22,13 @@ __host__ __device__ scalar_t check_condition_cuda_abs(scalar_t a){
 }
 
 template<typename scalar_t>
-__host__ __device__ scalar_t check_condition_cuda_cross_multiple(scalar_t a_x, scalar_t a_y, scalar_t b_x, scalar_t b_y){
+__host__ __device__ scalar_t dr_cuda_cross_multiple(scalar_t a_x, scalar_t a_y, scalar_t b_x, scalar_t b_y){
 	return a_x * b_y - a_y * b_x;
 }
 
 
 template<typename scalar_t>
-__host__ __device__ scalar_t check_condition_cuda_divide_non_zero(scalar_t a){
+__host__ __device__ scalar_t dr_cuda_divide_non_zero(scalar_t a){
 
 	if (a == 0){
 		return eps;
@@ -39,7 +42,7 @@ __host__ __device__ scalar_t check_condition_cuda_divide_non_zero(scalar_t a){
 }
 
 template<typename scalar_t>
-__host__ __device__ scalar_t check_condition_cuda_min_dis(scalar_t a, scalar_t b, scalar_t c){
+__host__ __device__ scalar_t dr_cuda_min_dis(scalar_t a, scalar_t b, scalar_t c){
 	scalar_t min_d = a;
 	if (b < min_d){
 		min_d = b;
@@ -51,7 +54,7 @@ __host__ __device__ scalar_t check_condition_cuda_min_dis(scalar_t a, scalar_t b
 }
 
 template<typename scalar_t>
-__host__ __device__ scalar_t check_condition_cuda_mid_distance(scalar_t* __restrict__ a, scalar_t* __restrict__ b, scalar_t* __restrict__ c){
+__host__ __device__ scalar_t dr_cuda_mid_distance(scalar_t* __restrict__ a, scalar_t* __restrict__ b, scalar_t* __restrict__ c){
 	// calculate the mid distance of a to bc line
 	scalar_t a_x = a[0];
 	scalar_t a_y = a[1];
@@ -64,12 +67,12 @@ __host__ __device__ scalar_t check_condition_cuda_mid_distance(scalar_t* __restr
 	scalar_t mid_x = (b_x + c_x) / 2;
 	scalar_t mid_y = (b_y + c_y) / 2;
 
-	scalar_t distance = check_condition_cuda_abs(a_x - mid_x) + check_condition_cuda_abs(a_y - mid_y);
+	scalar_t distance = dr_cuda_abs(a_x - mid_x) + dr_cuda_abs(a_y - mid_y);
 	return distance;
 }
 
 template<typename scalar_t>
-__global__ void check_condition_cuda_forward_kernel_batch(
+__global__ void dr_cuda_forward_kernel_batch(
 		scalar_t* __restrict__ grid_bxkx3x2,
 		scalar_t* __restrict__ img_pos_bxnx2,
 		scalar_t* __restrict__ condition_bxnx1,
@@ -134,8 +137,8 @@ __global__ void check_condition_cuda_forward_kernel_batch(
 			condition = 0.0;
 		}
 		else{
-			scalar_t w1 = k1 / check_condition_cuda_divide_non_zero(k3);
-			scalar_t w2 = k2 / check_condition_cuda_divide_non_zero(k3);
+			scalar_t w1 = k1 / dr_cuda_divide_non_zero(k3);
+			scalar_t w2 = k2 / dr_cuda_divide_non_zero(k3);
 			scalar_t w0 = 1 - w1 - w2;
 			// not lie in the triangle
 			if (w0 < 0 || w1 < 0 || w2 < 0) {
@@ -152,7 +155,7 @@ __global__ void check_condition_cuda_forward_kernel_batch(
 	}
 }
 
-void check_condition_cuda_forward_batch(at::Tensor grid_bxkx3x2, at::Tensor img_pos_bxnx2, at::Tensor condition_bxnx1, at::Tensor bbox_bxkx2x2){
+void dr_cuda_forward_batch(at::Tensor grid_bxkx3x2, at::Tensor img_pos_bxnx2, at::Tensor condition_bxnx1, at::Tensor bbox_bxkx2x2){
 
 	int bnum = grid_bxkx3x2.size(0);
 	int n_grid = grid_bxkx3x2.size(1);
@@ -167,8 +170,8 @@ void check_condition_cuda_forward_batch(at::Tensor grid_bxkx3x2, at::Tensor img_
 	const dim3 blocks(blocknum, 1, 1);
 
 //    cudaStream_t stream = THCState_getCurrentStream(state);
-	AT_DISPATCH_FLOATING_TYPES(grid_bxkx3x2.type(), "check_condition_cuda_forward_batch", ([&] {
-		check_condition_cuda_forward_kernel_batch<scalar_t><<<blocks, threads>>>(
+	AT_DISPATCH_FLOATING_TYPES(grid_bxkx3x2.type(), "dr_cuda_forward_batch", ([&] {
+		dr_cuda_forward_kernel_batch<scalar_t><<<blocks, threads>>>(
 				grid_bxkx3x2.data<scalar_t>(),
 				img_pos_bxnx2.data<scalar_t>(),
 				condition_bxnx1.data<scalar_t>(),

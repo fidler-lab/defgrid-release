@@ -1,12 +1,16 @@
 import torch
+import torch.nn as nn
 import torch.autograd
 from torch.autograd import Function
+import cv2
+import numpy as np
+import datetime
 from torch.utils.cpp_extension import load
 import os
-
+import time
 base_path = os.getcwd()
 
-line_variance_topk = load(name="line_variance_topk",
+cd = load(name="cd_line_variance_topk",
             sources = [os.path.join(base_path, "layers/DefGrid/variance_function_atom/line_distance_func_topk/variance_line_distance_for.cu"),
                        os.path.join(base_path, "layers/DefGrid/variance_function_atom/line_distance_func_topk/variance_line_distance_back.cu"),
                        os.path.join(base_path, "layers/DefGrid/variance_function_atom/line_distance_func_topk/variance_line_distance.cpp")],
@@ -61,7 +65,7 @@ class VarianceFunc(Function):
             top_k_grid[i][j * n_pixel_per_run:] = tmp_topk
 
         top_k_grid = top_k_grid.float()
-        line_variance_topk.forward(img_fea_bxnxd, grid_fea_bxkxd, grid_bxkx3x2,
+        cd.forward(img_fea_bxnxd, grid_fea_bxkxd, grid_bxkx3x2,
                    img_pos_bxnx2, variance_bxn, sigma, reconstruct_img,
                    top_k_grid, buffer_bxnxk)
         ctx.save_for_backward(img_fea_bxnxd, grid_fea_bxkxd, grid_bxkx3x2, img_pos_bxnx2, top_k_grid, sigma)
@@ -79,7 +83,7 @@ class VarianceFunc(Function):
 
         dldgrid_bxkx3x2 = torch.zeros(n_batch, n_grid, 3, 2, device=grid_bxkx3x2.device, dtype=torch.float)
         buffer_bxnxk = torch.zeros(n_batch, n_pixel, topk, device=grid_bxkx3x2.device, dtype=torch.float)
-        line_variance_topk.backward(dldvariance_bxn, img_fea_bxnxd, grid_fea_bxkxd,
+        cd.backward(dldvariance_bxn, img_fea_bxnxd, grid_fea_bxkxd,
                     grid_bxkx3x2,
                     img_pos_bxnx2, sigma[0].item(), dldreconstruct_img_bxnxd, top_k_grid,
                     buffer_bxnxk, dldgrid_bxkx3x2)

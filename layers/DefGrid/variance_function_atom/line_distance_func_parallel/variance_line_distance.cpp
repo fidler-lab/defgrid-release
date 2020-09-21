@@ -14,10 +14,10 @@ extern THCState *state;
 #define CHECK_DIM2(x, b, f, d) AT_ASSERTM((x.size(0) == b) && (x.size(1) == f) && (x.size(2) == d), #x " must be same point size")
 #define CHECK_DIM4(x, b, h, w, d, k) AT_ASSERTM((x.size(0) == b) && (x.size(1) == h) && (x.size(2) == w) && (x.size(3) == d) && (x.size(4) == k), #x " must be same im size")
 
-void line_variance_parallel_cuda_forward_batch(at::Tensor img_fea_bxnxd, at::Tensor grid_fea_bxkxd, at::Tensor grid_bxkx3x2, at::Tensor img_pos_bxnx2,
+void dr_cuda_forward_batch(at::Tensor img_fea_bxnxd, at::Tensor grid_fea_bxkxd, at::Tensor grid_bxkx3x2, at::Tensor img_pos_bxnx2,
                         at::Tensor variance_bxn, float sigma, at::Tensor reconstruct_bxn, at::Tensor buffer_bxnxk, at::Tensor buffer_bxn, at::Tensor buffer_bxnx4, at::Tensor buffer_bxnxdx4, int split_size);
 
-void line_variance_parallel_forward_batch(at::Tensor img_fea_bxnxd, at::Tensor grid_fea_bxkxd, at::Tensor grid_bxkx3x2, at::Tensor img_pos_bxnx2,
+void dr_forward_batch(at::Tensor img_fea_bxnxd, at::Tensor grid_fea_bxkxd, at::Tensor grid_bxkx3x2, at::Tensor img_pos_bxnx2,
                         at::Tensor variance_bxn, float sigma, at::Tensor reconstruct_bxn, at::Tensor buffer_bxnxk, at::Tensor buffer_bxn, at::Tensor buffer_bxnx4, at::Tensor buffer_bxnxdx4, int split_size) {
 	CHECK_INPUT(grid_bxkx3x2);
 	CHECK_INPUT(img_pos_bxnx2);
@@ -41,15 +41,15 @@ void line_variance_parallel_forward_batch(at::Tensor img_fea_bxnxd, at::Tensor g
 	CHECK_DIM2(img_fea_bxnxd, bnum, n_pixel, d_fea);
 	CHECK_DIM2(grid_fea_bxkxd, bnum, n_grid, d_fea);
     CHECK_DIM2(reconstruct_bxn, bnum, n_pixel, d_fea);
-	line_variance_parallel_cuda_forward_batch(img_fea_bxnxd, grid_fea_bxkxd, grid_bxkx3x2, img_pos_bxnx2, variance_bxn, sigma, reconstruct_bxn, buffer_bxnxk, buffer_bxn, buffer_bxnx4, buffer_bxnxdx4, split_size);
+	dr_cuda_forward_batch(img_fea_bxnxd, grid_fea_bxkxd, grid_bxkx3x2, img_pos_bxnx2, variance_bxn, sigma, reconstruct_bxn, buffer_bxnxk, buffer_bxn, buffer_bxnx4, buffer_bxnxdx4, split_size);
 
 	return;
 }
 
-void line_variance_parallel_cuda_backward_batch(at::Tensor dldvariance_bxn, at::Tensor img_fea_bxnxd, at::Tensor grid_fea_bxkxd, at::Tensor grid_bxkx3x2, at::Tensor img_pos_bxnx2,
+void dr_cuda_backward_batch(at::Tensor dldvariance_bxn, at::Tensor img_fea_bxnxd, at::Tensor grid_fea_bxkxd, at::Tensor grid_bxkx3x2, at::Tensor img_pos_bxnx2,
                          float sigma, at::Tensor dldreconstruct_bxnxd, at::Tensor buffer_bxnxk, at::Tensor dldgrid_bxkx3x2, at::Tensor buffer_bxn, at::Tensor buffer_bxnx4, int split_size);
 
-void line_variance_parallel_backward_batch(at::Tensor dldvariance_bxn, at::Tensor img_fea_bxnxd, at::Tensor grid_fea_bxkxd, at::Tensor grid_bxkx3x2, at::Tensor img_pos_bxnx2,
+void dr_backward_batch(at::Tensor dldvariance_bxn, at::Tensor img_fea_bxnxd, at::Tensor grid_fea_bxkxd, at::Tensor grid_bxkx3x2, at::Tensor img_pos_bxnx2,
                         float sigma, at::Tensor dldreconstruct_bxnxd, at::Tensor buffer_bxnxk, at::Tensor dldgrid_bxkx3x2, at::Tensor buffer_bxn, at::Tensor buffer_bxnx4, int split_size) {
 
 	CHECK_INPUT(grid_bxkx3x2);
@@ -75,13 +75,13 @@ void line_variance_parallel_backward_batch(at::Tensor dldvariance_bxn, at::Tenso
     CHECK_DIM2(dldreconstruct_bxnxd, bnum, n_pixel, d_fea);
     CHECK_DIM2(buffer_bxnxk, bnum, n_pixel, n_grid);
 
-	line_variance_parallel_cuda_backward_batch(dldvariance_bxn, img_fea_bxnxd, grid_fea_bxkxd, grid_bxkx3x2, img_pos_bxnx2, sigma,
+	dr_cuda_backward_batch(dldvariance_bxn, img_fea_bxnxd, grid_fea_bxkxd, grid_bxkx3x2, img_pos_bxnx2, sigma,
 	                        dldreconstruct_bxnxd, buffer_bxnxk, dldgrid_bxkx3x2, buffer_bxn, buffer_bxnx4, split_size);
 
 	return;
 }
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
-	m.def("forward", &line_variance_parallel_forward_batch, "dr forward batch (CUDA)");
-	m.def("backward", &line_variance_parallel_backward_batch, "dr backward batch (CUDA)");
+	m.def("forward", &dr_forward_batch, "dr forward batch (CUDA)");
+	m.def("backward", &dr_backward_batch, "dr backward batch (CUDA)");
 }

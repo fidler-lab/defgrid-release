@@ -1,80 +1,56 @@
 # Beyond Fixed Grid: Learning Geometric Image Representation with a Deformable Grid
 
-This is the official PyTorch implementation of Deformable Grid (ECCV 2020).  For technical details, please refer to:  
------------------------ ------------------------------------
-**Beyond Fixed Grid: Learning Geometric Image Representation with a Deformable Grid**  
-[Jun Gao](http://www.cs.toronto.edu/~jungao/) <sup>1,2,3</sup>, [Zian Wang](http://www.cs.toronto.edu/~zianwang/)<sup>1,2</sup>, [Jinchen Xuan]()<sup>4</sup>, [Sanja Fidler](http://www.cs.toronto.edu/~fidler/)<sup>1,2,3</sup>   
-<sup>1</sup> University of Toronto  <sup>2</sup> Vector Institute <sup>3</sup> NVIDIA  <sup>4</sup> Peking University
-**[[Paper](https://arxiv.org/pdf/2008.09269.pdf)] [[Video](https://www.youtube.com/watch?v=_DVxqK3_zlM)] [[Supplementary](http://www.cs.toronto.edu/~jungao/def-grid/files/suppl.pdf)]**
-
-**ECCV 2020**
-
-<img src = "fig/defgrid.png" width="100%"/>
-
-* In modern computer vision, images are typically represented as a fixed uniform grid with some stride and processed via a deep convolutional neural network. We argue that deforming the grid to better align with the high-frequency image content is a more effective strategy. We introduce \emph{Deformable Grid} (DefGrid), a learnable neural network module that predicts location offsets of vertices of a 2-dimensional triangular grid, such that the edges of the deformed grid align with image boundaries.
-We showcase our DefGrid in a variety of use cases, i.e., by inserting it as a module at various levels of processing. 
-We utilize DefGrid as an end-to-end \emph{learnable geometric downsampling} layer that replaces standard pooling methods for reducing feature resolution when feeding images into a deep CNN. We show significantly improved results at the same grid resolution compared to using CNNs on uniform grids for the task of semantic segmentation.
-We also utilize DedGrid at the output layers for the task of object mask annotation, and show that reasoning about object boundaries on our predicted polygonal grid leads to more accurate results over existing pixel-wise and curve-based approaches. We finally showcase {DefGrid} as a standalone module for unsupervised image partitioning, showing superior performance over existing approaches.
------------------------ ------------------------------------
-
-# Environment Setup
-All the code have been run and tested on Ubuntu 16.04, Python 2.7 (and 3.8), Pytorch 1.1.0 (and 1.2.0), CUDA 10.0, TITAN X/Xp and GTX 1080Ti GPUs
-
-- Go into the downloaded code directory
-```bash
-cd <path_to_downloaded_directory>
-```
-- Setup python environment
-```bash
-conda create --name defgrid
-conda activate defgrid
-conda install pytorch==1.2.0 torchvision==0.4.0 cudatoolkit=10.0 -c pytorch
-pip install opencv-python matplotlib networkx tensorboardx tqdm scikit-image ipdb
-```
-- Add the project to PYTHONPATH  
-```bash
-export PYTHONPATH=$PWD:$PYTHONPATH
-```
+This code branch provides an example of using DefGrid for learnable feature pooling 
+on Cityscapes semantic segmentation benchmark.
 
 
-# Eexample usecases
-We provide several usecases on DefGrid, more usecases are on the way! 
-We are hoping these usecases can provide insights and improvements on other image-based computer vision tasks as well.
- 
-## Train DefGrid on Cityscapes Full Image
+## Data preparation
 
-### Data 
 - Download the Cityscapes dataset (leftImg8bit\_trainvaltest.zip) from the official [website](https://www.cityscapes-dataset.com/downloads/) [11 GB]
-- Our dataloaders work with our processed annotation files which can be downloaded from [here](http://www.cs.toronto.edu/~amlan/data/polygon/cityscapes.tar.gz).
-- From the root directory, run the following command with appropriate paths to get the annotation files ready for your machine
-```bash
-python scripts/dataloaders/change_paths.py --city_dir <path_to_downloaded_leftImg8bit_folder> --json_dir <path_to_downloaded_annotation_file> --out_dir <output_dir>
+
+```
+mkdir dataset
+ln -s /<path_to_cityscapes_datase> dataset/cityscapes
 ```
 
-### Training
+- Download the data list from [semseg](https://github.com/hszhao/semseg) repo ([link](https://drive.google.com/drive/folders/1Om9Sg2JlJsd-GI-aMKUMLtVr-Gavnd38)).
 
-Train DefGrid on the whole traininig set.
-``` bash
-python scripts/train/train_def_grid_full.py --debug false --version train_on_cityscapes_full --encoder_backbone simplenn --resolution 512 1024 --grid_size 20 40 --w_area 0.005
+
+## Code structure
+
+```
+.
+├── ...        				# cloned master branch DefGrid folders
+|   
+├── lib/sync_bn        			# synchronized batchnorm 
+├── util           			# helper function for semantic segmentation
+├── DGNet.py				# model arch 
+└── gridpool.py        			# training and testing
 ```
 
-## Train DefGrid on Cityscapes-MultiComp
 
+## Training
 
-### Training
-Train DefGrid on the whole traininig set.
-```bash
-python scripts/train/train_def_grid_multi_comp.py --debug false --version train_on_cityscapes_multicomp
+Run gridpool.py to train the model. One sample command is:
+
 ```
-
-To train on other custom dataloader, please add a new `DataLoader` class according what we have provided. 
-the hyper-parameters might also need to change accordingly.  
-
-## Learnable downsampling for semantic segmentation on Cityscapes Full Image. 
-
-We provide the code in this [branch](https://github.com/fidler-lab/deformable-grid-internal/tree/pooling)
-
-
+python gridpool.py --train_h 1024 --train_w 2048 --batch <batch_size> --exp_name "gridpooling33x33" --grid_size 33 33 
+```
 
 # License
+
 This work is licensed under a *CC BY-NC-SA 4.0* License.
+
+If you use this code, please cite:
+
+    @inproceedings{deformablegrid,
+    title={Beyond Fixed Grid: Learning Geometric Image Representation with a Deformable Grid},
+    author={Jun Gao and Zian Wang and Jinchen Xuan and Sanja Fidler},
+    booktitle={ECCV},
+    year={2020}
+    }
+
+-----------------------------------------------------------
+The code skeleton is adapted from [semseg](https://github.com/hszhao/semseg) repo.
+We thank the authors for releasing their code.  
+

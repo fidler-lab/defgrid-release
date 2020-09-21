@@ -37,7 +37,7 @@ def get_args():
     parser.add_argument('--add_mask_variance', type=str2bool, default=True)
     parser.add_argument('--dextr_annotation', type=str2bool, default=False)
     parser.add_argument('--dataset', type=str, default='processed_cityscapes', choices=['processed_pascal', 'processed_cityscapes', 'full_pascal', 'full_cihp', 'processed_cityscapes_ade_mix', 'full_cityscapes', 'processed_cityscapes_ade'])
-    parser.add_argument('--encoder_backbone', type=str, default='deeplab', choices=['deeplab', 'affinity_net', 'simplenn'])
+    parser.add_argument('--encoder_backbone', type=str, default='deeplab', choices=['deeplab', 'affinity_net'])
 
     #learning parameter
     parser.add_argument('--lr_decay', type=str2bool, default=True)      

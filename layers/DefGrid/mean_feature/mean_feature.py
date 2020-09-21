@@ -5,7 +5,7 @@ import os
 base_path = os.getcwd()
 
 sys.path.append(os.path.join(base_path, 'layers/DefGrid/mean_feature'))
-mean_feature_func = load(name="mean_feature",
+cd = load(name="cd_mean_feature",
             sources = [os.path.join(base_path, "layers/DefGrid/mean_feature/mean_feature.cpp"),
                        os.path.join(base_path, "layers/DefGrid/mean_feature/mean_feature.cu")],
             verbose=True)
@@ -32,12 +32,12 @@ class MeanFeatureGather(torch.autograd.Function):
         if feature_map.shape[1] == 100000000:
             for i_batch in range(feature_map.shape[0]):
                 tmp_feature = feature_map[i_batch].unsqueeze(0).contiguous()
-                mean_feature_func.forward_cuda(mean_feature[i_batch].unsqueeze(0), grid_size[i_batch].unsqueeze(0),
+                cd.forward_cuda(mean_feature[i_batch].unsqueeze(0), grid_size[i_batch].unsqueeze(0),
                                 tmp_feature.float(), condition[i_batch].unsqueeze(0).float())
 
         else:
             feature_map = feature_map.contiguous()
-            mean_feature_func.forward_cuda(mean_feature, grid_size, feature_map.float(), condition.float())
+            cd.forward_cuda(mean_feature, grid_size, feature_map.float(), condition.float())
 
         ctx.save_for_backward(grid_size, condition)
         return mean_feature, grid_size

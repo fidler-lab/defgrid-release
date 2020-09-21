@@ -21,7 +21,6 @@ void MeanFeatureForwardKernelLauncher(
     const int grid_num
 );
 
-
 void mean_feature_forward_cuda(
     at::Tensor mean_feature, 
     at::Tensor grid_size, 

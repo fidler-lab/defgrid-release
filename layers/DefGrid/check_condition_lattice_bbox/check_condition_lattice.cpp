@@ -1,5 +1,6 @@
 #include <THC/THC.h>
 #include <torch/torch.h>
+
 #include <vector>
 #include<stdio.h>
 extern THCState *state;
@@ -13,9 +14,11 @@ extern THCState *state;
 #define CHECK_DIM2(x, b, f, d) AT_ASSERTM((x.size(0) == b) && (x.size(1) == f) && (x.size(2) == d), #x " must be same point size")
 #define CHECK_DIM4(x, b, h, w, d, k) AT_ASSERTM((x.size(0) == b) && (x.size(1) == h) && (x.size(2) == w) && (x.size(3) == d) && (x.size(4) == k), #x " must be same im size")
 
-void check_condition_cuda_forward_batch(at::Tensor grid_bxkx4x2, at::Tensor img_pos_bxnx2,  at::Tensor condition_bxnx1, at::Tensor bbox_bxkx2x2);
+// CUDA forward declarations
 
-void check_condition_forward_batch(at::Tensor grid_bxkx3x2, at::Tensor img_pos_bxnx2,  at::Tensor condition_bxnx1, at::Tensor bbox_bxkx2x2) {
+void dr_cuda_forward_batch(at::Tensor grid_bxkx4x2, at::Tensor img_pos_bxnx2,  at::Tensor condition_bxnx1, at::Tensor bbox_bxkx2x2);
+
+void dr_forward_batch(at::Tensor grid_bxkx3x2, at::Tensor img_pos_bxnx2,  at::Tensor condition_bxnx1, at::Tensor bbox_bxkx2x2) {
 	CHECK_INPUT(grid_bxkx3x2);
 	CHECK_INPUT(img_pos_bxnx2);
 	CHECK_INPUT(condition_bxnx1);
@@ -29,12 +32,38 @@ void check_condition_forward_batch(at::Tensor grid_bxkx3x2, at::Tensor img_pos_b
 	CHECK_DIM2(condition_bxnx1, bnum, n_pixel, 1);
 	CHECK_DIM3(bbox_bxkx2x2, bnum, n_grid, 2, 2);
 
-	check_condition_cuda_forward_batch(grid_bxkx3x2, img_pos_bxnx2, condition_bxnx1, bbox_bxkx2x2);
+	dr_cuda_forward_batch(grid_bxkx3x2, img_pos_bxnx2, condition_bxnx1, bbox_bxkx2x2);
+
+	return;
+}
+
+void dr_cuda_backward_batch(at::Tensor dl_dmindist_bxnxk, at::Tensor grid_bxkx4x2, at::Tensor img_pos_bxnx2, at::Tensor gradient_bxnxkx4x2, float sigma, at::Tensor condition_bxnxk);
+
+void dr_backward_batch(at::Tensor dl_dmindist_bxnxk, at::Tensor grid_bxkx3x2, at::Tensor img_pos_bxnx2, at::Tensor gradient_bxnxkx3x2, float sigma, at::Tensor condition_bxnxk) {
+
+	CHECK_INPUT(dl_dmindist_bxnxk);
+	CHECK_INPUT(grid_bxkx3x2);
+	CHECK_INPUT(img_pos_bxnx2);
+	CHECK_INPUT(gradient_bxnxkx3x2);
+	CHECK_INPUT(condition_bxnxk);
+
+	int bnum = grid_bxkx3x2.size(0);
+	int n_grid = grid_bxkx3x2.size(1);
+	int n_pixel = img_pos_bxnx2.size(1);
+
+	CHECK_DIM3(grid_bxkx3x2, bnum, n_grid, 3, 2);
+	CHECK_DIM2(img_pos_bxnx2, bnum, n_pixel, 2);
+	CHECK_DIM2(dl_dmindist_bxnxk, bnum, n_pixel, n_grid);
+	CHECK_DIM2(condition_bxnxk, bnum, n_pixel, n_grid);
+	CHECK_DIM4(gradient_bxnxkx3x2, bnum, n_pixel, n_grid, 3, 2);
+
+	dr_cuda_backward_batch(dl_dmindist_bxnxk, grid_bxkx3x2, img_pos_bxnx2, gradient_bxnxkx3x2, sigma, condition_bxnxk);
 
 	return;
 }
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
-	m.def("forward", &check_condition_forward_batch, "check_condition forward batch (CUDA)");
+	m.def("forward", &dr_forward_batch, "dr forward batch (CUDA)");
+	m.def("backward", &dr_backward_batch, "dr backward batch (CUDA)");
 }
 

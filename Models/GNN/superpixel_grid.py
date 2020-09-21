@@ -83,12 +83,12 @@ class DeformGNN(nn.Module):
         enforced_gcn_pred = gcn_pred
         gcn_pred_poly = base_point + enforced_gcn_pred[:, :, :2] * base_point_mask.squeeze(1)
 
-
-        laplacian_coord_1 = base_point - torch.bmm(base_normalized_point_adjacent, base_point)
-        laplacian_coord_2 = gcn_pred_poly - torch.bmm(base_normalized_point_adjacent, gcn_pred_poly)
-        laplacian_energy = ((laplacian_coord_2 - laplacian_coord_1) ** 2 + 1e-10).sum(-1).sqrt()
-        laplacian_energy = laplacian_energy.mean(dim=-1)
-        out_dict['laplacian_energy'] = laplacian_energy
+        if self.training:
+            laplacian_coord_1 = base_point - torch.bmm(base_normalized_point_adjacent, base_point)
+            laplacian_coord_2 = gcn_pred_poly - torch.bmm(base_normalized_point_adjacent, gcn_pred_poly)
+            laplacian_energy = ((laplacian_coord_2 - laplacian_coord_1) ** 2 + 1e-10).sum(-1).sqrt()
+            laplacian_energy = laplacian_energy.mean(dim=-1)
+            out_dict['laplacian_energy'] = laplacian_energy
 
         out_dict['pred_points'] = gcn_pred_poly
         out_dict['gcn_pred_points'] = gcn_pred

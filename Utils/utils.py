@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+from scipy.ndimage.morphology import distance_transform_cdt
+
 
 def draw_poly(mask, poly):
     """

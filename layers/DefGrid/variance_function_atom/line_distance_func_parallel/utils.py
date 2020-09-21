@@ -1,12 +1,16 @@
 import torch
+import torch.nn as nn
 import torch.autograd
 from torch.autograd import Function
+import cv2
+import numpy as np
+import datetime
 from torch.utils.cpp_extension import load
 import os
-
+import time
 base_path = os.getcwd()
 
-line_variance_parallel = load(name="line_variance_parallel",
+cd = load(name="cd_line_variance_parallel",
             sources = [os.path.join(base_path, "layers/DefGrid/variance_function_atom/line_distance_func_parallel/variance_line_distance_for.cu"),
                        os.path.join(base_path, "layers/DefGrid/variance_function_atom/line_distance_func_parallel/variance_line_distance_back.cu"),
                        os.path.join(base_path, "layers/DefGrid/variance_function_atom/line_distance_func_parallel/variance_line_distance.cpp")],
@@ -55,7 +59,7 @@ class VarianceFunc(Function):
             buffer_1xnx4.zero_()
             buffer_1xnxdx4.zero_()
             for j in range(n_img_split - 1): # all pixels before the last batch
-                line_variance_parallel.forward(img_fea_bxnxd[i][j * n_pixel_per_run: (j + 1) * n_pixel_per_run].unsqueeze(0),
+                cd.forward(img_fea_bxnxd[i][j * n_pixel_per_run: (j + 1) * n_pixel_per_run].unsqueeze(0),
                            grid_fea_bxkxd[i].unsqueeze(0),
                            grid_bxkx3x2[i].unsqueeze(0),
                             img_pos_bxnx2[i][j * n_pixel_per_run: (j + 1) * n_pixel_per_run].unsqueeze(0),
@@ -67,7 +71,7 @@ class VarianceFunc(Function):
             # last batch
             j = n_img_split - 1
             n_pixel_in_last = n_pixel - n_pixel_per_run * j
-            line_variance_parallel.forward(img_fea_bxnxd[i][j * n_pixel_per_run:].unsqueeze(0),
+            cd.forward(img_fea_bxnxd[i][j * n_pixel_per_run:].unsqueeze(0),
                        grid_fea_bxkxd[i].unsqueeze(0),
                        grid_bxkx3x2[i].unsqueeze(0),
                        img_pos_bxnx2[i][j * n_pixel_per_run:].unsqueeze(0),
@@ -79,9 +83,11 @@ class VarianceFunc(Function):
             variance_bxn[i][j * n_pixel_per_run:] = buffer_1xnxk[:,:n_pixel_in_last].sum(-1).squeeze()
 
         ctx.save_for_backward(img_fea_bxnxd, grid_fea_bxkxd, grid_bxkx3x2, img_pos_bxnx2, sigma)
+        #return variance_bxn, variance_bxk, reconstruct_img
         return variance_bxn, reconstruct_img
-
+    # This function has only a single output, so it gets only one gradient
     @staticmethod
+    #def backward(ctx, dldvariance_bxn, dldvariance_bxk, dldreconstruct_img_bxnxd):
     def backward(ctx, dldvariance_bxn, dldreconstruct_img_bxnxd):
         img_fea_bxnxd, grid_fea_bxkxd, grid_bxkx3x2, img_pos_bxnx2, sigma = ctx.saved_tensors
         # all_start_t = time.time()
@@ -110,7 +116,7 @@ class VarianceFunc(Function):
             buffer_1xnx4.zero_()
 
             for j in range(n_img_split - 1):  # all pixels before the last batch
-                line_variance_parallel.backward(dldvariance_bxn[i][j * n_pixel_per_run: (j + 1) * n_pixel_per_run].unsqueeze(0),
+                cd.backward(dldvariance_bxn[i][j * n_pixel_per_run: (j + 1) * n_pixel_per_run].unsqueeze(0),
                             img_fea_bxnxd[i][j * n_pixel_per_run: (j + 1) * n_pixel_per_run].unsqueeze(0),
                             grid_fea_bxkxd[i].unsqueeze(0), grid_bxkx3x2[i].unsqueeze(0),
                             img_pos_bxnx2[i][j * n_pixel_per_run: (j + 1) * n_pixel_per_run].unsqueeze(0),
@@ -121,7 +127,7 @@ class VarianceFunc(Function):
             # last batch
             j = n_img_split - 1
             n_pixel_in_last = n_pixel - n_pixel_per_run * j
-            line_variance_parallel.backward(dldvariance_bxn[i][j * n_pixel_per_run:].unsqueeze(0),
+            cd.backward(dldvariance_bxn[i][j * n_pixel_per_run:].unsqueeze(0),
                         img_fea_bxnxd[i][j * n_pixel_per_run:].unsqueeze(0),
                         grid_fea_bxkxd[i].unsqueeze(0), grid_bxkx3x2[i].unsqueeze(0),
                         img_pos_bxnx2[i][j * n_pixel_per_run:].unsqueeze(0),

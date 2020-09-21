@@ -4,7 +4,6 @@ import torch.nn.functional as F
 from Models.GNN import superpixel_grid
 from Models.Encoder.deeplab_resnet_skip import DeepLabResnet, NetHead
 from Models.GNN.base_network import MyEncoder
-from Models.GNN.grid_def_network import SimpleEncoder
 from dataloaders import helpers
 from layers.DefGrid.diff_variance import LatticeVariance
 from collections import defaultdict
@@ -63,10 +62,6 @@ class DeformableGrid(nn.Module):
                                          final_resolution=self.resolution,
                                          use_final=self.use_final_encoder, update_last=self.update_last).to(self.device)
             self.out_feature_channel_num = self.final_dim
-        elif self.encoder_backbone == 'simplenn':
-            self.encoder = SimpleEncoder()
-            self.out_feature_channel_num = 512
-            self.final_dim = 512
 
         if self.grid_pos_layer == 5:
             self.deformer_encoder = NetHead(self.final_dim, self.final_dim).to(self.device)
@@ -109,7 +104,8 @@ class DeformableGrid(nn.Module):
         else:
             deformer_feature = self.deformer_encoder(
                 final_cat_features[:, :self.concat_channels * self.grid_pos_layer, :, :])
-
+        # import ipdb
+        # ipdb.set_trace()
         output = self.deformer(deformer_feature, base_point, base_normalized_point_adjacent, base_point_mask)
         if timing:
             tt('get deformation', sub_batch_size)
@@ -126,7 +122,8 @@ class DeformableGrid(nn.Module):
         if not inference:
             if self.add_mask_variance:
                 tmp_gt_mask = deepcopy(crop_gt)
-                tmp_gt_mask = tmp_gt_mask.long()
+                tmp_gt_mask[tmp_gt_mask >= 0.5] = 1
+                tmp_gt_mask[tmp_gt_mask < 0.5] = 0
                 gt_mask = helpers.gtmask2onehot(tmp_gt_mask).permute(0, 2, 3, 1)
                 superpixel_ret = self.superpixel(grid_pos=pred_points,
                                                  img_fea=net_input[:, :3, ...].permute(0, 2, 3, 1), \

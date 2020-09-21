@@ -1,21 +1,32 @@
 import torch
+import torch.nn as nn
 import torch.autograd
 from torch.autograd import Function
+import cv2
+import numpy as np
 from torch.utils.cpp_extension import load
 import os
 
 base_path = os.getcwd()
 
-check_condition = load(name="check_condition_bbox",
+cd = load(name="cd_condition_bbox",
           sources=[
+              os.path.join(base_path, "layers/DefGrid/check_condition_lattice_bbox/check_condition_lattice_back2.cu"),
               os.path.join(base_path, "layers/DefGrid/check_condition_lattice_bbox/check_condition_lattice_for2.cu"),
               os.path.join(base_path, "layers/DefGrid/check_condition_lattice_bbox/check_condition_lattice.cpp")],
           verbose=True)
 
+import datetime
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+############################################
+eps = 1e-10
+debug = False
+
 
 ############################################3
-class CheckCondition(Function):
+# Inherit from Function
+class TriRender2D(Function):
 
     # Note that both forward and backward are @staticmethods
     @staticmethod
@@ -29,15 +40,17 @@ class CheckCondition(Function):
         bottom_right, _ = torch.max(grid_bxkx3x2, dim=2)
         bottom_right = bottom_right.unsqueeze(2)
         bbox_bxkx2x2 = torch.cat([top_left, bottom_right], dim=2)
-        check_condition.forward(grid_bxkx3x2, img_pos_bxnx2, condition_bxnx1, bbox_bxkx2x2)
+        cd.forward(grid_bxkx3x2, img_pos_bxnx2, condition_bxnx1, bbox_bxkx2x2)
+
         return condition_bxnx1
 
+    # This function has only a single output, so it gets only one gradient
     @staticmethod
     def backward(ctx, condition_bxnx1):
         return None, None, None
 
 
 ###############################################################
-check_condition_f_bbox = CheckCondition.apply
+check_condition_f_bbox = TriRender2D.apply
 
 

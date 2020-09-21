@@ -7,6 +7,8 @@ import numpy as np
 import copy
 
 def tens2image(im):
+    # import ipdb
+    # ipdb.set_trace()
     if im.size()[0] == 1:
         tmp = np.squeeze(im.numpy(), axis=0)
     else:
@@ -25,7 +27,7 @@ def gtmask2onehot(gtmask):
 
     return onehot
 
-def get_bbox(mask, points=None, pad=0, zero_pad=False):
+def get_bbox(mask, points=None, pad=0, zero_pad=False, for_grid=False, grid_size=20):
     # we need to adjust pad if we want to do for the bigger grid
     if points is not None:
         inds = np.flip(points.transpose(), axis=0)
@@ -273,20 +275,6 @@ def make_gaussian(size, sigma=10, center=None, d_type=np.float64):
     return np.exp(-4 * np.log(2) * ((x - x0) ** 2 + (y - y0) ** 2) / sigma ** 2).astype(d_type)
 
 
-def extreme_points(mask, pert):
-    def find_point(id_x, id_y, ids):
-        sel_id = ids[0][random.randint(0, len(ids[0]) - 1)]
-        return [id_x[sel_id], id_y[sel_id]]
-
-    # List of coordinates of the mask
-    inds_y, inds_x = np.where(mask > 0.5)
-
-    # Find extreme points
-    return np.array([find_point(inds_x, inds_y, np.where(inds_x <= np.min(inds_x)+pert)), # left
-                     find_point(inds_x, inds_y, np.where(inds_x >= np.max(inds_x)-pert)), # right
-                     find_point(inds_x, inds_y, np.where(inds_y <= np.min(inds_y)+pert)), # top
-                     find_point(inds_x, inds_y, np.where(inds_y >= np.max(inds_y)-pert)) # bottom
-                     ])
 
 def fixed_resize(sample, resolution, flagval=None):
 
