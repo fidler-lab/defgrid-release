@@ -72,7 +72,7 @@ the hyper-parameters might also need to change accordingly.
 
 ## Learnable downsampling for semantic segmentation on Cityscapes Full Image. 
 
-We provide the code in this [branch](https://github.com/fidler-lab/deformable-grid-internal/tree/pooling)
+We provide the code in this [branch](https://github.com/fidler-lab/defgrid-release/tree/pooling)
 
 
 
