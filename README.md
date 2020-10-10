@@ -77,7 +77,7 @@ python scripts/dataloaders/change_paths.py --city_dir <path_to_downloaded_leftIm
 #### Training
 
 Train DefGrid on the whole traininig set.
-``` bash
+```bash
 python scripts/train/train_def_grid_full.py --debug false --version train_on_cityscapes_full --encoder_backbone simplenn --resolution 512 1024 --grid_size 20 40 --w_area 0.005
 ```
 
@@ -90,8 +90,11 @@ Train DefGrid on the whole traininig set.
 python scripts/train/train_def_grid_multi_comp.py --debug false --version train_on_cityscapes_multicomp
 ```
 
-To train on other custom dataloader, please add a new `DataLoader` class according what we have provided. 
-the hyper-parameters might also need to change accordingly.  
+
+### Train DefGrid on Custom dataset
+- Please add a new `DataLoader` class according what we have provided. 
+- The mask annotation is not required. DefGrid can be trained with RGB images only. To do that, please add one more tag in the training command: `--add_mask_variance false`, and remove all the variables related to `crop_gt` in the training script.
+- To tune the DefGrid, we suggest: 1. Starting from a high regularization (e.g. `--w_area 0.5 --w_laplacian 0.5`), in this case, the grid vertices will be close the initial position, and retrain regularity. 2. Gradually reduce the weight until a satisfactory result obtained.  
 
 ### Learnable downsampling for semantic segmentation on Cityscapes Images. 
 
