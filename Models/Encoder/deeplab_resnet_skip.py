@@ -11,6 +11,14 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class NetHead(nn.Module):
     def __init__(self, input_dim=128, final_dim=128):
+        """
+        Initialize the network.
+
+        Args:
+            self: (todo): write your description
+            input_dim: (int): write your description
+            final_dim: (int): write your description
+        """
         super(NetHead, self).__init__()
         conv_final_1 = nn.Conv2d(input_dim, final_dim, kernel_size=3, padding=1, bias=False)
         bn_final_1 = nn.BatchNorm2d(final_dim)
@@ -18,6 +26,14 @@ class NetHead(nn.Module):
         self.encoder = nn.Sequential(conv_final_1, bn_final_1, relu_final_1)
 
     def my_load_state_dict(self, state_dict, strict=True):
+        """
+        : param state dictionary from a dictionary.
+
+        Args:
+            self: (todo): write your description
+            state_dict: (dict): write your description
+            strict: (bool): write your description
+        """
         # copy first conv
         new_state_dict = {}
         for k in state_dict:
@@ -34,6 +50,13 @@ class NetHead(nn.Module):
         # ipdb.set_trace()
         self.load_state_dict(new_state_dict, strict=strict)
     def forward(self, x):
+        """
+        Forward computation.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+        """
         return self.encoder(x)
 
 class DeepLabResnet(nn.Module):
@@ -48,6 +71,23 @@ class DeepLabResnet(nn.Module):
                  normalize_input=True,
                  use_final=True,
                  update_last=False):
+        """
+        Initialize the network.
+
+        Args:
+            self: (todo): write your description
+            concat_channels: (todo): write your description
+            final_dim: (int): write your description
+            final_resolution: (todo): write your description
+            input_channel: (todo): write your description
+            classifier: (str): write your description
+            n_classes: (todo): write your description
+            reload: (todo): write your description
+            cnn_feature_grids: (todo): write your description
+            normalize_input: (bool): write your description
+            use_final: (bool): write your description
+            update_last: (todo): write your description
+        """
 
         super(DeepLabResnet, self).__init__()
         self.use_final = use_final
@@ -131,6 +171,13 @@ class DeepLabResnet(nn.Module):
             self.reload_model()
 
     def reload_model(self, path='/scratch/ssd001/home/jungao/pretrained_model/MS_DeepLab_resnet_trained_VOC.pth'):
+        """
+        Reloads a model
+
+        Args:
+            self: (todo): write your description
+            path: (str): write your description
+        """
         if not os.path.exists(path):
             path = '/scratch/gobi1/jungao/pretrained_model/MS_DeepLab_resnet_trained_VOC.pth'
         if not os.path.exists(path):
@@ -140,6 +187,13 @@ class DeepLabResnet(nn.Module):
         del model_full
 
     def forward(self, x):
+        """
+        Perform computation.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+        """
         batch_size = x.shape[0]
         assert self.classifier == 'psp' # TODO: we're always using psp net
         if self.normalize_input:
@@ -175,6 +229,13 @@ class DeepLabResnet(nn.Module):
         return final_features, final_cat_features
 
     def normalize(self, x):
+        """
+        Normalize the layer.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+        """
 
         individual = torch.unbind(x, dim=0)
         out = []
@@ -186,6 +247,14 @@ class DeepLabResnet(nn.Module):
         return torch.stack(out, dim=0)
 
     def my_load_state_dict(self, state_dict, strict=True):
+        """
+        Loads a dictionary.
+
+        Args:
+            self: (todo): write your description
+            state_dict: (dict): write your description
+            strict: (bool): write your description
+        """
         # copy first conv
         new_state_dict = {}
         for k in state_dict:

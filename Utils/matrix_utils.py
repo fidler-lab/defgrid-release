@@ -4,6 +4,16 @@ import numpy as np
 
 class MatrixUtils:
     def __init__(self, batch_size, grid_size, grid_type, device):
+        """
+        Initialize a grid.
+
+        Args:
+            self: (todo): write your description
+            batch_size: (int): write your description
+            grid_size: (int): write your description
+            grid_type: (str): write your description
+            device: (todo): write your description
+        """
         self.batch_size = batch_size
         self.grid_size = grid_size
 
@@ -34,6 +44,19 @@ class MatrixUtils:
 
 
     def get_new_matrix(self, img_size, n_grid, device, batch_size=1, upsample=False, scale_pos=False, upsample_scale=2):
+        """
+        Return a new 2dense image.
+
+        Args:
+            self: (todo): write your description
+            img_size: (int): write your description
+            n_grid: (int): write your description
+            device: (todo): write your description
+            batch_size: (int): write your description
+            upsample: (int): write your description
+            scale_pos: (str): write your description
+            upsample_scale: (str): write your description
+        """
         img_height = img_size[0]
         img_width = img_size[1]
         # calculate the number of superpixel
@@ -63,6 +86,14 @@ class MatrixUtils:
                 init_area_mask, point_num, grid_num, grid_size
 
     def get_img_pos(self, img_size, device):
+        """
+        Get the position of the image at the given device.
+
+        Args:
+            self: (todo): write your description
+            img_size: (int): write your description
+            device: (todo): write your description
+        """
         output_row = img_size[0]
         output_column = img_size[1]
 

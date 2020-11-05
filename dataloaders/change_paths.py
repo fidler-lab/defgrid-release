@@ -6,6 +6,11 @@ import tqdm
 
 
 def arguments():
+    """
+    Parse command line arguments.
+
+    Args:
+    """
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--city_dir', type=str,
@@ -24,6 +29,12 @@ def arguments():
 
 
 def process_one_json(args, j):
+    """
+    Process a json file.
+
+    Args:
+        j: (todo): write your description
+    """
     if args.out_dir == 'null':
         out_dir = args.json_dir
     else:
@@ -53,12 +64,23 @@ def process_one_json(args, j):
 
 
 def check_and_create(args, d):
+    """
+    Check if the given arguments exist.
+
+    Args:
+        d: (str): write your description
+    """
     ow = args.out_dir != 'null'
     if ow and not osp.exists(d):
         os.makedirs(d)
 
 
 def main():
+    """
+    Main function.
+
+    Args:
+    """
     args = arguments()
     splits = ['train', 'train_val', 'val']
     all_jsons = []

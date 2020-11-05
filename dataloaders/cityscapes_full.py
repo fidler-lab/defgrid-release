@@ -162,6 +162,13 @@ class cityscapesFullLoader(data.Dataset):
         print("\nFound %d %s images" % (len(self.files[split]), split))
 
     def filter_city(self, split):
+        """
+        Filter files bytestring.
+
+        Args:
+            self: (todo): write your description
+            split: (array): write your description
+        """
         new_files = []
         for f in self.files[split]:
             for c in cities[split]:
@@ -200,6 +207,14 @@ class cityscapesFullLoader(data.Dataset):
 
 
     def random_crop(self, img, lbl):
+        """
+        Randomly crop a crop.
+
+        Args:
+            self: (todo): write your description
+            img: (array): write your description
+            lbl: (todo): write your description
+        """
         img_h, img_w = img.shape[0], img.shape[1]
         top = random.randint(0, img_h - self.crop_size)
         left = random.randint(0, img_w - self.crop_size)
@@ -210,6 +225,13 @@ class cityscapesFullLoader(data.Dataset):
 
 
     def decode_segmap(self, temp):
+        """
+        Decode a segmap.
+
+        Args:
+            self: (todo): write your description
+            temp: (array): write your description
+        """
         r = temp.copy()
         g = temp.copy()
         b = temp.copy()
@@ -225,6 +247,13 @@ class cityscapesFullLoader(data.Dataset):
         return rgb
 
     def encode_segmap(self, mask):
+        """
+        Encode a mask.
+
+        Args:
+            self: (todo): write your description
+            mask: (todo): write your description
+        """
         # Put all void classes to zero
         for _voidc in self.void_classes:
             mask[mask == _voidc] = self.ignore_index

@@ -14,10 +14,24 @@ from Utils.time_utils import tt
 EPS = 1e-8
 
 def defaulttensor(sub_batch_size, device):
+    """
+    Returns a tensor for the given sub_size.
+
+    Args:
+        sub_batch_size: (int): write your description
+        device: (todo): write your description
+    """
     return torch.zeros(sub_batch_size).to(device)
 
 class DeformableGrid(nn.Module):
     def __init__(self, args, device):
+        """
+        Initialize the device
+
+        Args:
+            self: (todo): write your description
+            device: (todo): write your description
+        """
         super(DeformableGrid, self).__init__()
         self.debug = args.debug
         self.device = device
@@ -89,6 +103,23 @@ class DeformableGrid(nn.Module):
                      crop_gt=None,
                      inference=False,  timing=False,
                     grid_size=20):
+        """
+        Perform forward computation.
+
+        Args:
+            self: (todo): write your description
+            net_input: (todo): write your description
+            base_point: (todo): write your description
+            base_normalized_point_adjacent: (todo): write your description
+            base_point_mask: (todo): write your description
+            base_triangle2point: (todo): write your description
+            base_area_mask: (bool): write your description
+            base_triangle_mask: (todo): write your description
+            crop_gt: (todo): write your description
+            inference: (todo): write your description
+            timing: (todo): write your description
+            grid_size: (int): write your description
+        """
 
         sub_batch_size = net_input.shape[0]
         device = net_input.device

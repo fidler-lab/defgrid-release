@@ -11,6 +11,15 @@ class GraphConvolution(Module):
     """
 
     def __init__(self, state_dim,  name='', out_state_dim=None):
+        """
+        Initialize the graph.
+
+        Args:
+            self: (todo): write your description
+            state_dim: (int): write your description
+            name: (str): write your description
+            out_state_dim: (str): write your description
+        """
         super(GraphConvolution, self).__init__()
         self.state_dim = state_dim
 
@@ -32,6 +41,14 @@ class GraphConvolution(Module):
         #self.fc2.weight = nn.Parameter(torch.zeros_like(self.fc2.weight))
         #self.fc2.bias = nn.Parameter(torch.zeros_like(self.fc2.bias))
     def forward(self, input, adj):
+        """
+        Returns the forward forward forward.
+
+        Args:
+            self: (todo): write your description
+            input: (todo): write your description
+            adj: (todo): write your description
+        """
 
         state_in = self.fc1(input)
 
@@ -42,4 +59,10 @@ class GraphConvolution(Module):
 
 
     def __repr__(self):
+        """
+        Return a repr representation of this object.
+
+        Args:
+            self: (todo): write your description
+        """
         return self.__class__.__name__ + ' (' +  self.name + ')'
