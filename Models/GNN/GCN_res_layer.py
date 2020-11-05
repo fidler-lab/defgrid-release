@@ -11,6 +11,14 @@ class GraphResConvolution(Module):
     """
 
     def __init__(self, state_dim, name=''):
+        """
+        Initialize the graph.
+
+        Args:
+            self: (todo): write your description
+            state_dim: (int): write your description
+            name: (str): write your description
+        """
         super(GraphResConvolution, self).__init__()
         self.state_dim = state_dim
 
@@ -23,6 +31,14 @@ class GraphResConvolution(Module):
         self.name = name
 
     def forward(self, input, adj):
+        """
+        Calculate forward.
+
+        Args:
+            self: (todo): write your description
+            input: (todo): write your description
+            adj: (todo): write your description
+        """
 
         output_1 = self.gcn_1(input, adj)
         output_1_relu = self.relu1(output_1)
@@ -38,4 +54,10 @@ class GraphResConvolution(Module):
 
 
     def __repr__(self):
+        """
+        Return a repr representation of this object.
+
+        Args:
+            self: (todo): write your description
+        """
         return self.__class__.__name__ + ' (' +  self.name + ')'

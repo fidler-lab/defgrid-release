@@ -11,6 +11,16 @@ class GCN(nn.Module):
                  feature_dim=256,
                  out_dim=2,
                  layer_num=8):
+        """
+        Initialize the graph.
+
+        Args:
+            self: (todo): write your description
+            state_dim: (int): write your description
+            feature_dim: (str): write your description
+            out_dim: (int): write your description
+            layer_num: (int): write your description
+        """
 
         super(GCN, self).__init__()
         self.state_dim = state_dim
@@ -28,6 +38,14 @@ class GCN(nn.Module):
         )
 
     def forward(self, x, adj):
+        """
+        Forward computation. gcn algorithm.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+            adj: (todo): write your description
+        """
         out = F.relu(self.first_gcn(x, adj))
         for m_gcn in self.middle_gcn:
             out = m_gcn(out, adj)

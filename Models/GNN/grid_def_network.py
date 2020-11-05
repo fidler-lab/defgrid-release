@@ -6,10 +6,27 @@ import torchvision
 EPS = 1e-8
 
 def defaulttensor(sub_batch_size, device):
+    """
+    Returns a tensor for the given sub_size.
+
+    Args:
+        sub_batch_size: (int): write your description
+        device: (todo): write your description
+    """
     return torch.zeros(sub_batch_size).to(device)
 
 class PPM(nn.Module):
     def __init__(self, in_dim, reduction_dim, bins, BatchNorm):
+        """
+        Initialize the network.
+
+        Args:
+            self: (todo): write your description
+            in_dim: (int): write your description
+            reduction_dim: (int): write your description
+            bins: (int): write your description
+            BatchNorm: (todo): write your description
+        """
         super(PPM, self).__init__()
         self.features = []
         for bin in bins:
@@ -22,6 +39,13 @@ class PPM(nn.Module):
         self.features = nn.ModuleList(self.features)
 
     def forward(self, x):
+        """
+        Forward computation.
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+        """
         x_size = x.size()
         out = [x]
         for f in self.features:
@@ -30,6 +54,12 @@ class PPM(nn.Module):
 
 class SimpleEncoder(nn.Module):
     def __init__(self):
+        """
+        Initialize the network.
+
+        Args:
+            self: (todo): write your description
+        """
         super(SimpleEncoder, self).__init__()
         resnet = torchvision.models.resnet50(pretrained=True)
 
@@ -43,6 +73,13 @@ class SimpleEncoder(nn.Module):
         self.ppm = PPM(256, 64, (1, 2, 3, 6), torch.nn.BatchNorm2d)
 
     def forward(self, x):
+        """
+        Forward computation of the layer
+
+        Args:
+            self: (todo): write your description
+            x: (todo): write your description
+        """
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
